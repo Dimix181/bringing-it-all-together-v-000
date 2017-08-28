@@ -5,9 +5,12 @@ class Dog
     attr_reader :id
 
   COLUMNS_NAME = {id: "INTEGER PRIMARY KEY", name: "TEXT", breed: "TEXT"}
-
-  def self.columns_name_for_table
-    COLUMNS_NAME.collect{|k,v|"#{k} #{v}"}.join(",")
+#returns array for each column name
+  def self.columns_name
+    DB[:conn].results_as_hash = true
+    sql = "PRAGMA TABLE_INFO('#{table_name}')"
+    table_info = DB[:conn].execute(sql)
+    table_info.collect{|row| row["name"]}.compact
   end
 
   def self.table_name
@@ -16,8 +19,8 @@ class Dog
 #-------------------------------------------------------------#
   def self.create_table
     sql = <<-SQL
-      CREATE TABLE IF NOT EXISTS #{Dog.table_name}
-      (#{self.columns_name_for_table} )
+      CREATE TABLE IF NOT EXISTS #{table_name}
+      (#{self.columns_name} )
       SQL
       DB[:conn].execute(sql)
   end
